@@ -12,3 +12,7 @@ format = "service-worker"
 [env.production]
 zone_id = "58a51453c62c5b66f8568340bd0462eb"
 type = "webpack"
+
+kv_namespaces = [
+  { binding = "NAMESPACE", id = "45535816551a4ee98eadf251bd3367bf" }
+]
