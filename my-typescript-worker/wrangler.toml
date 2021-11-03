@@ -1,12 +1,14 @@
 name = "my-typescript-worker"
 type = "javascript"
-zone_id = ""
-account_id = ""
-route = ""
+account_id = "589927a35e1fe7c2cadbdb3bc6d2db75"
 workers_dev = true
 compatibility_date = "2021-11-02"
 
 [build]
-command = "npm install && npm run build"
+command = "yarn && yarn webpack"
 [build.upload]
 format = "service-worker"
+
+[env.production]
+zone_id = "58a51453c62c5b66f8568340bd0462eb"
+type = "webpack"
