@@ -15,4 +15,7 @@ describe('handle', () => {
     const text = await result.text()
     expect(text).toEqual('request method: GET')
   })
+
+  // creating new user that already exist fails
+  // cannot submit matches with yourself
 })

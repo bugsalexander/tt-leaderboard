@@ -29,7 +29,7 @@ const handleGetRequest: Handler = async (_request, kv) => {
 }
 
 const handlePostRequest: Handler = async (request, kv) => {
-  const name = await request.json();
+  const name = await request.json()
   if (typeof name !== 'string') {
     throw `Request body must be of type "string" but instead was "${typeof name}"`
   }
@@ -55,21 +55,10 @@ const handlePutRequest: Handler = async (request, kv) => {
     throw 'Winner must not be the same as loser'
   }
 
-  const winnerOldRating = leaderboard[winner]
-  const loserOldRating = leaderboard[loser]
-  const expectedScore = calculateExpectedScore(winnerOldRating, loserOldRating)
-  const winnerNewRating = calculateNewRating(
-    winnerOldRating,
-    expectedScore,
-    IS_WIN,
-  )
-  const loserNewRating = calculateNewRating(
-    loserOldRating,
-    expectedScore,
-    !IS_WIN,
-  )
-  leaderboard[winner] = winnerNewRating
-  leaderboard[loser] = loserNewRating
+  const probLoserWins = calculateExpectedScore(leaderboard[winner], leaderboard[loser])
+  const probWinnerWins = 1 - probLoserWins
+  leaderboard[winner] = Math.round(calculateNewRating(leaderboard[winner], probWinnerWins, IS_WIN))
+  leaderboard[loser] = Math.round(calculateNewRating(leaderboard[loser], probLoserWins, !IS_WIN))
 
   await updateLeaderboardData(leaderboard, kv)
 
@@ -79,22 +68,16 @@ const handlePutRequest: Handler = async (request, kv) => {
   })
 }
 
+const IDK = 400
 const K_VALUE = 100
-const calculateExpectedScore = (
-  ratingPlayerA: number,
-  ratingPlayerB: number,
-): number => {
-  const power = Math.abs(ratingPlayerA - ratingPlayerB) / K_VALUE
+const calculateExpectedScore = (ratingPlayerA: number, ratingPlayerB: number): number => {
+  const power = (ratingPlayerA - ratingPlayerB) / IDK
   return 1 / (1 + Math.pow(10, power))
 }
 
-const calculateNewRating = (
-  rating: number,
-  expectedScore: number,
-  isWin: boolean,
-): number => {
+const calculateNewRating = (rating: number, probabilityToWin: number, isWin: boolean): number => {
   const score = isWin ? 1 : 0
-  return rating + K_VALUE * (score - expectedScore)
+  return rating + K_VALUE * (score - probabilityToWin)
 }
 
 export const safe =
