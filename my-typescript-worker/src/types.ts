@@ -17,4 +17,4 @@ export type LeaderboardApiPutRequest = {
 };
 export type LeaderboardApiPostRequest = string;
 
-export type Handler = (req: Request) => Response | Promise<Response>;
+export type Handler = (req: Request, kv: KVNamespace) => Response | Promise<Response>;

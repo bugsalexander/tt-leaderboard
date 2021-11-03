@@ -1,27 +1,26 @@
 import { Handler, LeaderboardApiPutRequest, UserScore } from './types'
 
-declare const NAMESPACE: KVNamespace
 const KV_LEADERBOARD_KEY = 'LEADERBOARD'
 const JSON_HEADERS = { 'content-type': 'application/json;charset=UTF-8' }
 const IS_WIN = true
 const AVG_RATING = 1500
 
-export const leaderboardHandler: Handler = async (request) => {
+export const leaderboardHandler: Handler = async (request, kv) => {
   if (request.method === 'GET') {
-    return handleGetRequest(request)
+    return handleGetRequest(request, kv)
   } else if (request.method === 'POST') {
-    return handlePostRequest(request)
+    return handlePostRequest(request, kv)
   } else if (request.method === 'PUT') {
-    return handlePutRequest(request)
+    return handlePutRequest(request, kv)
   }
   return new Response('Expected GET or POST', { status: 405 })
 }
 
-const handleGetRequest: Handler = async (_request: Request) => {
+const handleGetRequest: Handler = async (_request, kv) => {
   // assume that the result we get back is an object mapping names to elo
   return new Response(
     JSON.stringify({
-      leaderboard: parseLeaderboardString(await getLeaderboardData()),
+      leaderboard: parseLeaderboardString(await getLeaderboardData(kv)),
     }),
     {
       headers: JSON_HEADERS,
@@ -29,15 +28,15 @@ const handleGetRequest: Handler = async (_request: Request) => {
   )
 }
 
-const handlePostRequest: Handler = async (request) => {
-  const name = request.body
+const handlePostRequest: Handler = async (request, kv) => {
+  const name = request.body as unknown;
   if (typeof name !== 'string') {
     throw 'Request body must be of type "string"'
   }
 
-  const leaderboard = await getLeaderboardData()
+  const leaderboard = await getLeaderboardData(kv)
   leaderboard[name] = AVG_RATING
-  await updateLeaderboardData(leaderboard)
+  await updateLeaderboardData(leaderboard, kv)
 
   return new Response(JSON.stringify(leaderboard), {
     status: 201,
@@ -45,9 +44,9 @@ const handlePostRequest: Handler = async (request) => {
   })
 }
 
-const handlePutRequest: Handler = async (request) => {
+const handlePutRequest: Handler = async (request, kv) => {
   const { winner, loser } = validatePutRequestBody(request.body)
-  const leaderboard = await getLeaderboardData()
+  const leaderboard = await getLeaderboardData(kv)
   // if either user doesn't exist, abort
   if (!(winner in leaderboard && loser in leaderboard)) {
     throw 'Winner and loser must both already exist in the leaderboard'
@@ -72,7 +71,7 @@ const handlePutRequest: Handler = async (request) => {
   leaderboard[winner] = winnerNewRating
   leaderboard[loser] = loserNewRating
 
-  await updateLeaderboardData(leaderboard)
+  await updateLeaderboardData(leaderboard, kv)
 
   return new Response(JSON.stringify(parseLeaderboardString(leaderboard)), {
     status: 202,
@@ -100,9 +99,9 @@ const calculateNewRating = (
 
 export const safe =
   (handler: Handler): Handler =>
-  async (req: Request) => {
+  async (req, kv) => {
     try {
-      return await handler(req)
+      return await handler(req, kv)
     } catch (e) {
       if (e instanceof Error) {
         return new Response(
@@ -132,16 +131,16 @@ export const safe =
     }
   }
 
-const getLeaderboardData = async (): Promise<Record<string, number>> => {
-  const leaderboardString = await NAMESPACE.get(KV_LEADERBOARD_KEY)
+const getLeaderboardData = async (kv: KVNamespace): Promise<Record<string, number>> => {
+  const leaderboardString = await kv.get(KV_LEADERBOARD_KEY)
   if (leaderboardString === null) {
     return {}
   }
   return JSON.parse(leaderboardString)
 }
 
-const updateLeaderboardData = async (data: Record<string, number>) => {
-  await NAMESPACE.put(KV_LEADERBOARD_KEY, JSON.stringify(data))
+const updateLeaderboardData = async (data: Record<string, number>, kv: KVNamespace) => {
+  await kv.put(KV_LEADERBOARD_KEY, JSON.stringify(data))
   return
 }
 
