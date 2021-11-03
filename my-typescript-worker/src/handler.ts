@@ -31,7 +31,7 @@ const handleGetRequest: Handler = async (_request, kv) => {
 const handlePostRequest: Handler = async (request, kv) => {
   const name = request.body as unknown;
   if (typeof name !== 'string') {
-    throw 'Request body must be of type "string"'
+    throw `Request body must be of type "string" but instead was "${typeof name}"`
   }
 
   const leaderboard = await getLeaderboardData(kv)
