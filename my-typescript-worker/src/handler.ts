@@ -4,6 +4,7 @@ const KV_LEADERBOARD_KEY = 'LEADERBOARD'
 const JSON_HEADERS = { 'content-type': 'application/json;charset=UTF-8' }
 const IS_WIN = true
 const AVG_RATING = 1500
+const K_VALUE = 100
 
 export const leaderboardHandler: Handler = async (request, kv) => {
   if (request.method === 'GET') {
@@ -55,10 +56,9 @@ const handlePutRequest: Handler = async (request, kv) => {
     throw 'Winner must not be the same as loser'
   }
 
-  const probLoserWins = calculateExpectedScore(leaderboard[winner], leaderboard[loser])
-  const probWinnerWins = 1 - probLoserWins
-  leaderboard[winner] = Math.round(calculateNewRating(leaderboard[winner], probWinnerWins, IS_WIN))
-  leaderboard[loser] = Math.round(calculateNewRating(leaderboard[loser], probLoserWins, !IS_WIN))
+  const [winnerNewRating, loserNewRating] = calculateRatings(leaderboard[winner], leaderboard[loser], K_VALUE)
+  leaderboard[winner] = winnerNewRating
+  leaderboard[loser] = loserNewRating
 
   await updateLeaderboardData(leaderboard, kv)
 
@@ -69,15 +69,24 @@ const handlePutRequest: Handler = async (request, kv) => {
 }
 
 const IDK = 400
-const K_VALUE = 100
-const calculateExpectedScore = (ratingPlayerA: number, ratingPlayerB: number): number => {
+export const calculateWinProbability = (ratingPlayerA: number, ratingPlayerB: number): number => {
   const power = (ratingPlayerA - ratingPlayerB) / IDK
   return 1 / (1 + Math.pow(10, power))
 }
 
-const calculateNewRating = (rating: number, probabilityToWin: number, isWin: boolean): number => {
+export const calculateRatingDiff = (
+  probabilityToWin: number,
+  kValue: number,
+  isWin: boolean,
+): number => {
   const score = isWin ? 1 : 0
-  return rating + K_VALUE * (score - probabilityToWin)
+  return Math.round(kValue * (score - probabilityToWin))
+}
+
+export const calculateRatings = (winnerRating: number, loserRating: number, kValue: number) => {
+  const probabilityWinnerWins = calculateWinProbability(loserRating, winnerRating)
+  const winnerRatingDiff = calculateRatingDiff(probabilityWinnerWins, kValue, true);
+  return [winnerRating + winnerRatingDiff, loserRating - winnerRatingDiff]
 }
 
 export const safe =
