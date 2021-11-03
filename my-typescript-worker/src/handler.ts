@@ -29,7 +29,7 @@ const handleGetRequest: Handler = async (_request, kv) => {
 }
 
 const handlePostRequest: Handler = async (request, kv) => {
-  const name = request.body as unknown;
+  const name = await request.json();
   if (typeof name !== 'string') {
     throw `Request body must be of type "string" but instead was "${typeof name}"`
   }
@@ -45,7 +45,7 @@ const handlePostRequest: Handler = async (request, kv) => {
 }
 
 const handlePutRequest: Handler = async (request, kv) => {
-  const { winner, loser } = validatePutRequestBody(request.body)
+  const { winner, loser } = validatePutRequestBody(await request.json())
   const leaderboard = await getLeaderboardData(kv)
   // if either user doesn't exist, abort
   if (!(winner in leaderboard && loser in leaderboard)) {
