@@ -1,8 +1,16 @@
 import type { NextPage } from "next";
 import axios, { AxiosResponse } from "axios";
-import { Leaderboard } from "../../my-typescript-worker/src/types";
 import useSWR from "swr";
 import { UserScore } from "../components/UserScore";
+
+type Leaderboard = {
+  leaderboard: Array<UserScore>;
+}
+
+type UserScore = {
+  name: string;
+  elo: number;
+}
 
 const getLeaderboard = async (): Promise<AxiosResponse<Leaderboard>> =>
   axios.get("/api");
