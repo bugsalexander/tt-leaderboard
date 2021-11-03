@@ -1,8 +1,9 @@
-name = "my-typescript-worker"
+name = "tt-leaderboard-worker-1-dev"
 type = "javascript"
 account_id = "589927a35e1fe7c2cadbdb3bc6d2db75"
-workers_dev = true
+zone_id = "58a51453c62c5b66f8568340bd0462eb"
 compatibility_date = "2021-11-02"
+route = "dev.tt-leaderboard.takayamasan.dev/api/*"
 
 [build]
 command = "yarn && yarn webpack"
@@ -10,8 +11,9 @@ command = "yarn && yarn webpack"
 format = "service-worker"
 
 [env.production]
-zone_id = "58a51453c62c5b66f8568340bd0462eb"
+name = "tt-leaderboard-worker-1-prod"
 type = "webpack"
+route = "tt-leaderboard.takayamasan.dev/api/*"
 
 kv_namespaces = [
   { binding = "NAMESPACE", id = "45535816551a4ee98eadf251bd3367bf" }
