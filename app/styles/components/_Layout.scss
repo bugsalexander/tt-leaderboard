@@ -11,6 +11,9 @@
 
   .content {
     padding: 0 15%;
+    @media (max-width: $md) {
+      padding: 0 50px;
+    }
 
     .site-layout-content {
       min-height: 500px;
