@@ -16,7 +16,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
           <Menu.Item key={Page.Leaderboard}>Leaderboard</Menu.Item>
         </Menu>
       </Layout.Header>
-      <Layout.Content style={{ padding: "0 50px" }}>
+      <Layout.Content className={"content"}>
         <Breadcrumb style={{ margin: "16px 0" }}>
           <Breadcrumb.Item>Leaderboard</Breadcrumb.Item>
           {/*<Breadcrumb.Item>List</Breadcrumb.Item>*/}
@@ -24,7 +24,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
         </Breadcrumb>
         <div className="site-layout-content">{children}</div>
       </Layout.Content>
-      <Layout.Footer style={{ textAlign: "center" }}>
+      <Layout.Footer className="footer">
         {`Chris' Party House ©2021`}
       </Layout.Footer>
     </Layout>
