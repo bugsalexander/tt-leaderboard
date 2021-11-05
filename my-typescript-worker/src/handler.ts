@@ -79,6 +79,9 @@ const handlePostRequest: Handler = async (request, kv) => {
   }
 
   const leaderboard = await getLeaderboardData(kv)
+  if (name in leaderboard) {
+    throw `User with name ${name} already exists`
+  }
   leaderboard[name] = AVG_RATING
   await updateLeaderboardData(leaderboard, kv)
 
