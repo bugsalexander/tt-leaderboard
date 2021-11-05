@@ -20,7 +20,7 @@ export const leaderboardHandler: Handler = async (request, kv) => {
   } else if (request.method === 'PUT') {
     return handlePutRequest(request, kv)
   }
-  return new Response('Expected GET or POST', { status: 405 })
+  return new Response(JSON.stringify('Expected GET or POST'), { status: 405, headers: HEADERS })
 }
 
 // Reference: https://developers.cloudflare.com/workers/examples/cors-header-proxy
@@ -160,7 +160,7 @@ export const safe =
           },
         )
       } else if (typeof e === 'string') {
-        return new Response(`Bad Request: ${e}`, { status: 400 })
+        return new Response(JSON.stringify(`Bad Request: ${e}`), { status: 400, headers: HEADERS })
       }
       return new Response(
         JSON.stringify({
