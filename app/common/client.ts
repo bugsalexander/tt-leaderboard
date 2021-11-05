@@ -16,6 +16,7 @@ export const createPlayer = async (
 export const submitMatch = async (
   winner: string,
   loser: string
-): Promise<AxiosResponse<Leaderboard>> => {
-  return axios.put("/api", { winner, loser }, { baseURL });
+): Promise<AxiosResponse<Leaderboard | string>> => {
+  // include validate status so that we don't throw on 4xx
+  return axios.put("/api", { winner, loser }, { baseURL, validateStatus: () => true });
 };
