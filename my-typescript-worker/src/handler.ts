@@ -2,7 +2,6 @@ import { Handler, LeaderboardApiPutRequest, UserScore } from './types'
 
 const KV_LEADERBOARD_KEY = 'LEADERBOARD'
 const JSON_HEADERS = { 'content-type': 'application/json;charset=UTF-8' }
-const IS_WIN = true
 const AVG_RATING = 1500
 const K_VALUE = 100
 
@@ -21,7 +20,7 @@ const handleGetRequest: Handler = async (_request, kv) => {
   // assume that the result we get back is an object mapping names to elo
   return new Response(
     JSON.stringify({
-      leaderboard: parseLeaderboardString(await getLeaderboardData(kv)),
+      leaderboard: sortLeaderboard(parseLeaderboardString(await getLeaderboardData(kv))),
     }),
     {
       headers: JSON_HEADERS,
@@ -39,7 +38,7 @@ const handlePostRequest: Handler = async (request, kv) => {
   leaderboard[name] = AVG_RATING
   await updateLeaderboardData(leaderboard, kv)
 
-  return new Response(JSON.stringify(leaderboard), {
+  return new Response(JSON.stringify(sortLeaderboard(parseLeaderboardString(leaderboard))), {
     status: 201,
     headers: JSON_HEADERS,
   })
@@ -62,7 +61,7 @@ const handlePutRequest: Handler = async (request, kv) => {
 
   await updateLeaderboardData(leaderboard, kv)
 
-  return new Response(JSON.stringify(parseLeaderboardString(leaderboard)), {
+  return new Response(JSON.stringify(sortLeaderboard(parseLeaderboardString(leaderboard))), {
     status: 202,
     headers: JSON_HEADERS,
   })
@@ -141,6 +140,11 @@ const parseLeaderboardString = (data: Record<string, number>): UserScore[] => {
     name,
     elo,
   }))
+}
+
+export const sortLeaderboard = (leaderboard: UserScore[]): UserScore[] => {
+  leaderboard.sort((a, b) => b.elo - a.elo);
+  return leaderboard;
 }
 
 export const validatePutRequestBody = (body: any): LeaderboardApiPutRequest => {
