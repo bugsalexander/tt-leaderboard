@@ -1,12 +1,19 @@
 import { Handler, LeaderboardApiPutRequest, UserScore } from './types'
 
 const KV_LEADERBOARD_KEY = 'LEADERBOARD'
-const JSON_HEADERS = { 'content-type': 'application/json;charset=UTF-8' }
+const ACCESS_CONTROL_ALLOW_METHODS = 'GET, POST, PUT, OPTIONS';
+const HEADERS = {
+  'content-type': 'application/json;charset=UTF-8',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': ACCESS_CONTROL_ALLOW_METHODS,
+}
 const AVG_RATING = 1500
 const K_VALUE = 100
 
 export const leaderboardHandler: Handler = async (request, kv) => {
-  if (request.method === 'GET') {
+  if (request.method === 'OPTIONS') {
+    return handleOptionsRequest(request)
+  } else if (request.method === 'GET') {
     return handleGetRequest(request, kv)
   } else if (request.method === 'POST') {
     return handlePostRequest(request, kv)
@@ -16,6 +23,43 @@ export const leaderboardHandler: Handler = async (request, kv) => {
   return new Response('Expected GET or POST', { status: 405 })
 }
 
+// Reference: https://developers.cloudflare.com/workers/examples/cors-header-proxy
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': ACCESS_CONTROL_ALLOW_METHODS,
+  'Access-Control-Max-Age': '86400',
+}
+const handleOptionsRequest = (request: Request) => {
+  // Make sure the necessary headers are present for this to be a valid pre-flight request
+  const headers = request.headers
+  if (
+    headers.get('Origin') !== null &&
+    headers.get('Access-Control-Request-Method') !== null &&
+    headers.get('Access-Control-Request-Headers') !== null
+  ) {
+    // Handle CORS pre-flight request.
+    // If you want to check or reject the requested method + headers
+    // you can do that here.
+    const respHeaders = {
+      ...corsHeaders,
+      // Allow all future content Request headers to go back to browser
+      // such as Authorization (Bearer) or X-Client-Name-Version
+      'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers')!,
+    }
+    return new Response(null, {
+      headers: respHeaders,
+    })
+  }
+
+  // Handle standard OPTIONS request.
+  // If you want to allow other HTTP Methods, you can do that here.
+  return new Response(null, {
+    headers: {
+      Allow: ACCESS_CONTROL_ALLOW_METHODS,
+    },
+  })
+}
+
 const handleGetRequest: Handler = async (_request, kv) => {
   // assume that the result we get back is an object mapping names to elo
   return new Response(
@@ -23,7 +67,7 @@ const handleGetRequest: Handler = async (_request, kv) => {
       leaderboard: sortLeaderboard(parseLeaderboardString(await getLeaderboardData(kv))),
     }),
     {
-      headers: JSON_HEADERS,
+      headers: HEADERS,
     },
   )
 }
@@ -40,7 +84,7 @@ const handlePostRequest: Handler = async (request, kv) => {
 
   return new Response(JSON.stringify(sortLeaderboard(parseLeaderboardString(leaderboard))), {
     status: 201,
-    headers: JSON_HEADERS,
+    headers: HEADERS,
   })
 }
 
@@ -63,7 +107,7 @@ const handlePutRequest: Handler = async (request, kv) => {
 
   return new Response(JSON.stringify(sortLeaderboard(parseLeaderboardString(leaderboard))), {
     status: 202,
-    headers: JSON_HEADERS,
+    headers: HEADERS,
   })
 }
 
@@ -73,18 +117,14 @@ export const calculateWinProbability = (ratingPlayerA: number, ratingPlayerB: nu
   return 1 / (1 + Math.pow(10, power))
 }
 
-export const calculateRatingDiff = (
-  probabilityToWin: number,
-  kValue: number,
-  isWin: boolean,
-): number => {
+export const calculateRatingDiff = (probabilityToWin: number, kValue: number, isWin: boolean): number => {
   const score = isWin ? 1 : 0
   return Math.round(kValue * (score - probabilityToWin))
 }
 
 export const calculateRatings = (winnerRating: number, loserRating: number, kValue: number) => {
   const probabilityWinnerWins = calculateWinProbability(loserRating, winnerRating)
-  const winnerRatingDiff = calculateRatingDiff(probabilityWinnerWins, kValue, true);
+  const winnerRatingDiff = calculateRatingDiff(probabilityWinnerWins, kValue, true)
   return [winnerRating + winnerRatingDiff, loserRating - winnerRatingDiff]
 }
 
@@ -103,7 +143,7 @@ export const safe =
           }),
           {
             status: 500,
-            headers: JSON_HEADERS,
+            headers: HEADERS,
           },
         )
       } else if (typeof e === 'string') {
@@ -116,7 +156,7 @@ export const safe =
         }),
         {
           status: 500,
-          headers: JSON_HEADERS,
+          headers: HEADERS,
         },
       )
     }
@@ -143,8 +183,8 @@ const parseLeaderboardString = (data: Record<string, number>): UserScore[] => {
 }
 
 export const sortLeaderboard = (leaderboard: UserScore[]): UserScore[] => {
-  leaderboard.sort((a, b) => b.elo - a.elo);
-  return leaderboard;
+  leaderboard.sort((a, b) => b.elo - a.elo)
+  return leaderboard
 }
 
 export const validatePutRequestBody = (body: any): LeaderboardApiPutRequest => {

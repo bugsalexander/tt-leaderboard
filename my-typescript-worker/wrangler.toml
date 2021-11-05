@@ -3,7 +3,7 @@ type = "javascript"
 account_id = "589927a35e1fe7c2cadbdb3bc6d2db75"
 zone_id = "58a51453c62c5b66f8568340bd0462eb"
 compatibility_date = "2021-11-02"
-route = "dev.tt-leaderboard.takayamasan.dev/api"
+workers_dev = true
 
 [build]
 command = "yarn && yarn webpack"
