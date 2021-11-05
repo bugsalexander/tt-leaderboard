@@ -1,7 +1,7 @@
 import { Handler, LeaderboardApiPutRequest, UserScore } from './types'
 
 const KV_LEADERBOARD_KEY = 'LEADERBOARD'
-const ACCESS_CONTROL_ALLOW_METHODS = 'GET, POST, PUT, OPTIONS';
+const ACCESS_CONTROL_ALLOW_METHODS = 'GET, POST, PUT, OPTIONS'
 const HEADERS = {
   'content-type': 'application/json;charset=UTF-8',
   'Access-Control-Allow-Origin': '*',
@@ -85,10 +85,15 @@ const handlePostRequest: Handler = async (request, kv) => {
   leaderboard[name] = AVG_RATING
   await updateLeaderboardData(leaderboard, kv)
 
-  return new Response(JSON.stringify(sortLeaderboard(parseLeaderboardString(leaderboard))), {
-    status: 201,
-    headers: HEADERS,
-  })
+  return new Response(
+    JSON.stringify({
+      leaderboard: sortLeaderboard(parseLeaderboardString(leaderboard)),
+    }),
+    {
+      status: 201,
+      headers: HEADERS,
+    },
+  )
 }
 
 const handlePutRequest: Handler = async (request, kv) => {
@@ -108,10 +113,15 @@ const handlePutRequest: Handler = async (request, kv) => {
 
   await updateLeaderboardData(leaderboard, kv)
 
-  return new Response(JSON.stringify(sortLeaderboard(parseLeaderboardString(leaderboard))), {
-    status: 202,
-    headers: HEADERS,
-  })
+  return new Response(
+    JSON.stringify({
+      leaderboard: sortLeaderboard(parseLeaderboardString(leaderboard)),
+    }),
+    {
+      status: 202,
+      headers: HEADERS,
+    },
+  )
 }
 
 const IDK = 400
