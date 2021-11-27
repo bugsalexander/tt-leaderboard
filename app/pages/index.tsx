@@ -3,17 +3,19 @@ import useSWR from "swr";
 import { UserScore } from "../components/UserScore";
 import { getLeaderboard } from "../common/client";
 import { Button, Dropdown, Form, Input, Menu } from "antd";
-import { DownOutlined, UserOutlined } from "@ant-design/icons";
 import { SubmitMatch } from "../components/SubmitMatch";
+import {PageLayout} from "../components/Layout";
+import {AddPlayer} from "../components/AddPlayer";
 
 const Home: NextPage = () => {
   const { data, mutate } = useSWR("/api", getLeaderboard);
   const leaderboard = data?.data.leaderboard;
 
   return (
+    <PageLayout>
     <div className="home">
       <div className="section">
-        <h1>Ping POng Leaderboard!</h1>
+        <h1>Leaderboard</h1>
         <ol>
           {leaderboard?.map((userScore) => (
             <UserScore
@@ -28,11 +30,10 @@ const Home: NextPage = () => {
         <SubmitMatch mutate={mutate} leaderboard={leaderboard} />
       </div>
       <div className="section">
-        <h1>Add Player</h1>
-        <Input></Input>
-        <Button>Add Player</Button>
+        <AddPlayer mutate={mutate} leaderboard={leaderboard} />
       </div>
     </div>
+    </PageLayout>
   );
 };
 

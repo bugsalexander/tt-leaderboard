@@ -49,16 +49,13 @@ export const SubmitMatch: React.FC<SubmitMatchProps> = ({
         <Alert className="error" message={result.data} type="error" showIcon />
       ));
     } else {
-      // @ts-ignore
-      const resultType: AxiosResponse<Leaderboard> = result;
-      setError(null);
+      onReset();
+      const resultType: AxiosResponse<Leaderboard> = result as AxiosResponse<Leaderboard>;
       const winnerOld = getElo(leaderboard!, winner);
       const winnerNew = getElo(resultType.data.leaderboard, winner);
       const winnerGain = winnerNew - winnerOld;
       const loserNew = getElo(resultType.data.leaderboard, loser);
       await mutate(resultType);
-      form.resetFields();
-
       notification.success({
         message: (
           <>
@@ -84,7 +81,7 @@ export const SubmitMatch: React.FC<SubmitMatchProps> = ({
   return (
     <div className="submit-match">
       <h1>Submit Match</h1>
-      <Form {...layout} form={form} name="control-hooks" onFinish={onSubmit}>
+      <Form {...layout} form={form} onFinish={onSubmit}>
         <Form.Item
           name="winner"
           label="Winner"
@@ -186,6 +183,6 @@ const PlayerDropdown: React.FC<PlayerDropdownProps> = (props) => {
   );
 };
 
-const getElo = (leaderboard: UserScore[], name: string): number => {
+export const getElo = (leaderboard: UserScore[], name: string): number => {
   return leaderboard.find((u) => u.name === name)!.elo;
 };

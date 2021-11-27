@@ -9,6 +9,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   children,
 }) => {
   return (
+    <>
     <Layout className="layout">
       <Layout.Header>
         <div className="logo" />
@@ -17,16 +18,16 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
         </Menu>
       </Layout.Header>
       <Layout.Content className={"content"}>
-        <Breadcrumb style={{ margin: "16px 0" }}>
-          <Breadcrumb.Item>Leaderboard</Breadcrumb.Item>
+        {/*<Breadcrumb style={{ margin: "16px 0" }}>*/}
+        {/*  <Breadcrumb.Item>Leaderboard</Breadcrumb.Item>*/}
           {/*<Breadcrumb.Item>List</Breadcrumb.Item>*/}
           {/*<Breadcrumb.Item>App</Breadcrumb.Item>*/}
-        </Breadcrumb>
+        {/*</Breadcrumb>*/}
         <div className="site-layout-content">{children}</div>
       </Layout.Content>
       <Layout.Footer className="footer">
         {`Chris' Party House ©2021`}
       </Layout.Footer>
-    </Layout>
+    </Layout></>
   );
 };
